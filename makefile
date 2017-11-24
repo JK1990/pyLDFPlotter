@@ -10,7 +10,7 @@ TARGET = EventModule
 all: $(TARGET).so
 
 $(TARGET).so: $(TARGET).o Event.o utl.o
-	g++ -shared -Wl,--export-dynamic $(TARGET).o $(shell auger-offline-config --ldflags) -lboost_python -lboost_numpy -L$(PYTHON_LIB) -lpython$(PYTHON_VERSION) -std=c++11 -o $(TARGET).so
+	g++ -shared -Wl,--export-dynamic $(TARGET).o Event.o utl.o $(shell auger-offline-config --ldflags) -lboost_python -lboost_numpy -L$(PYTHON_LIB) -lpython$(PYTHON_VERSION) -std=c++11 -o $(TARGET).so
 
 Event.o: Event.cpp Event.h
 	g++ -I$(PYTHON_INCLUDE) $(shell auger-offline-config --cppflags) -std=c++11 -c Event.cpp
