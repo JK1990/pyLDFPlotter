@@ -220,7 +220,7 @@ np::ndarray Event::GetAccidentalSignals(){
     return result;
 }
 
-np::ndarray Event::GetSilentSignals(){
+np::ndarray Event::GetBadSilentSignals(){
     const SDEvent& sdEvent = recEvent->GetSDEvent();
     const Detector& det = recEvent->GetDetector();
     const vector<SdBadStation>& badStations = sdEvent.GetBadStationVector();
@@ -243,10 +243,63 @@ np::ndarray Event::GetSilentSignals(){
             const int id = iStation->first;
             const double dist = GetStationShowerAxisDistance(id);
             if ( dist < 10000. && !sdEvent.HasStation(id)){
-                signal.push_back(3.);
-                signalErr.push_back(0.);
-                distance.push_back(dist);
-                distanceErr.push_back(0.);
+                if (sdEvent.HasBadStation(id) && (
+                            sdEvent.GetBadStationById(id)->GetReason() == eBadSilent ||
+                            sdEvent.GetBadStationById(id)->GetReason() == eNotAliveT2 ||
+                            sdEvent.GetBadStationById(id)->GetReason() == eNotAliveT120)){
+                    signal.push_back(3.);
+                    signalErr.push_back(0.);
+                    distance.push_back(dist);
+                    distanceErr.push_back(0.);
+                }
+            }
+        }
+    }
+
+    p::tuple shape = p::make_tuple(4,signal.size());
+    np::dtype dtype = np::dtype::get_builtin<double>();
+    np::ndarray result = np::zeros(shape,dtype);
+    
+    result[0] = vector_to_ndarray(distance);
+    result[1] = vector_to_ndarray(distanceErr);
+    result[2] = vector_to_ndarray(signal);
+    result[3] = vector_to_ndarray(signalErr);
+
+    return result;
+}
+
+np::ndarray Event::GetGoodSilentSignals(){
+    const SDEvent& sdEvent = recEvent->GetSDEvent();
+    const Detector& det = recEvent->GetDetector();
+    const vector<SdBadStation>& badStations = sdEvent.GetBadStationVector();
+    TBits array = det.GetActiveStations();
+
+    vector<double> signal;
+    vector<double> signalErr;
+    vector<double> distance;
+    vector<double> distanceErr;
+
+    for (size_t i=0;i<badStations.size();++i) {
+        if ( badStations[i].GetReason() != eBadSilent )
+            array[badStations[i].GetId()] = false;
+    }
+
+    for (DetectorGeometry::StationPosMapConstIterator iStation = detectorGeometry->GetStationsBegin();
+            iStation!=detectorGeometry->GetStationsEnd();
+            ++iStation){
+        if ( array.TestBitNumber(iStation->first)){
+            const int id = iStation->first;
+            const double dist = GetStationShowerAxisDistance(id);
+            if ( dist < 10000. && !sdEvent.HasStation(id)){
+                if (!sdEvent.HasBadStation(id) || (
+                            sdEvent.GetBadStationById(id)->GetReason() != eBadSilent &&
+                            sdEvent.GetBadStationById(id)->GetReason() != eNotAliveT2 &&
+                            sdEvent.GetBadStationById(id)->GetReason() != eNotAliveT120)){
+                    signal.push_back(3.);
+                    signalErr.push_back(0.);
+                    distance.push_back(dist);
+                    distanceErr.push_back(0.);
+                }
             }
         }
     }

@@ -19,6 +19,7 @@ BOOST_PYTHON_MODULE(EventModule)
         .def("GetSaturatedSignals",&Event::GetSaturatedSignals)
         .def("GetRecoveredSignals",&Event::GetRecoveredSignals)
         .def("GetAccidentalSignals",&Event::GetAccidentalSignals)
-        .def("GetSilentSignals",&Event::GetSilentSignals)
+        .def("GetBadSilentSignals",&Event::GetBadSilentSignals)
+        .def("GetGoodSilentSignals",&Event::GetGoodSilentSignals)
     ;
 }

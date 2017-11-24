@@ -45,7 +45,8 @@ class Event: boost::noncopyable
         np::ndarray GetSaturatedSignals();
         np::ndarray GetRecoveredSignals();
         np::ndarray GetAccidentalSignals();
-        np::ndarray GetSilentSignals();
+        np::ndarray GetBadSilentSignals();
+        np::ndarray GetGoodSilentSignals();
     
     private:
         RecEventFile recEventFile;
