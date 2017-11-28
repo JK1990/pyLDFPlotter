@@ -63,7 +63,7 @@ double Event::GetStationShowerAxisDistance(int id){
     const TVector3& showerCore = sdRecShower.GetCoreSiteCS();
     const TVector3& showerAxis = sdRecShower.GetAxisSiteCS();
 
-    return detectorGeometry->GetStationAxisDistance(id,showerCore,showerAxis);
+    return detectorGeometry->GetStationAxisDistance(id,showerAxis,showerCore);
 }
 
 np::ndarray Event::GetLDF(np::ndarray x){
@@ -291,10 +291,12 @@ np::ndarray Event::GetGoodSilentSignals(){
             const int id = iStation->first;
             const double dist = GetStationShowerAxisDistance(id);
             if ( dist < 10000. && !sdEvent.HasStation(id)){
-                if (!sdEvent.HasBadStation(id) || (
-                            sdEvent.GetBadStationById(id)->GetReason() != eBadSilent &&
-                            sdEvent.GetBadStationById(id)->GetReason() != eNotAliveT2 &&
-                            sdEvent.GetBadStationById(id)->GetReason() != eNotAliveT120)){
+                if (sdEvent.HasBadStation(id) && (
+                            sdEvent.GetBadStationById(id)->GetReason() == eBadSilent ||
+                            sdEvent.GetBadStationById(id)->GetReason() == eNotAliveT2 ||
+                            sdEvent.GetBadStationById(id)->GetReason() == eNotAliveT120)){
+                    continue;
+                } else {
                     signal.push_back(3.);
                     signalErr.push_back(0.);
                     distance.push_back(dist);
